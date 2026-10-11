@@ -2,8 +2,8 @@
 	"schemaVersion": 1,
 	"id": "modid",
 	"version": "${version}",
-	"name": "Example Mod",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Beacon Range",
+	"description": "A client-side utility mod that visualizes active beacon coverage with customizable per-beacon colors, persistent visibility settings, and quick F8 toggling.",
 	"authors": [
 		"Me!"
 	],
