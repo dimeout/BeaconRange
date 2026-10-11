@@ -1,4 +1,13 @@
-# Example Mod
+# Beacon Range
+
+A client-side Fabric utility mod for visualizing beacon coverage with
+color-coded transparent boxes.
+
+## Visibility toggle
+
+Press **F8** to quickly hide or show the beacon range visualization. The key
+uses an edge-triggered toggle, so holding F8 changes visibility only once.
+This controls rendering visibility without changing which beacons are pinned.
 
 ## Setup
 
