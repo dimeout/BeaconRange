@@ -3,7 +3,12 @@
 	"package": "com.example.client.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"ExampleClientMixin"
+		"ExampleClientMixin",
+		"BeaconAccessor",
+		"LevelRendererMixin",
+		"BeaconScreenMixin",
+		"ScreenAccessor",
+		"BeaconScreenAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1
