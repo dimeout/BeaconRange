@@ -12,15 +12,19 @@ coverage while building and planning your base.
 - Open a beacon's GUI to access the **Range: ON/OFF** button for that specific
   beacon.
 - Use **Range Color** to choose a custom color for the selected beacon.
-- Press **F8** to quickly hide or show all range visualizations.
-- Saves beacon colors, individual beacon visibility, and the F8 visibility
+- Use **Toggle Beacon Visuals** in Minecraft's **Controls** menu to choose a
+  key, then press it to hide or show all range visualizations. The default key
+  is **F8**, and an action-bar message confirms whether visuals were turned on
+  or off.
+- Saves beacon colors, individual beacon visibility, and the global visibility
   setting between sessions.
 - Supports Minecraft 26.2 with Fabric Loader and Fabric API.
 
 Beacon range boxes represent the beacon's horizontal range of 20, 30, 40, or
-50 blocks depending on its pyramid level. The vertical display is capped to
-keep the visualization useful while building instead of filling the entire
-height of the world.
+50 blocks depending on its pyramid level. Vertically, a box extends downward
+by the beacon's range and upward to 50 blocks above the highest terrain found
+at the beacon, capped at the world's build height. This keeps a beacon built
+underground visible through the surface without filling the entire world.
 
 ## Planned features
 

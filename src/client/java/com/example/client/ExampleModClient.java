@@ -1,6 +1,7 @@
 package com.example.client;
 
 import com.example.client.mixin.BeaconAccessor;
+import com.example.BeaconRangeGeometry;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -10,12 +11,15 @@ import com.google.gson.JsonParser;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gizmos.GizmoStyle;
 import net.minecraft.gizmos.Gizmos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
@@ -39,9 +43,15 @@ public class ExampleModClient implements ClientModInitializer {
 	};
 	public static final Set<BlockPos> pinnedBeacons = new HashSet<>();
 	private static final Map<BeaconKey, Integer> beaconColors = new HashMap<>();
+	private static final Map<BeaconKey, Integer> surfaceHeights = new HashMap<>();
 	private static final Set<BeaconKey> hiddenBeacons = new HashSet<>();
+	private static final KeyMapping TOGGLE_RANGES_KEY = new KeyMapping(
+			"key.beacon_range.toggle",
+			GLFW.GLFW_KEY_F8,
+			KeyMapping.Category.MISC
+	);
 	private static boolean rangesVisible = true;
-	private static boolean f8WasDown;
+	private static long surfaceCacheWindow = Long.MIN_VALUE;
 	private static Path configPath;
 
 	@Override
@@ -52,16 +62,15 @@ public class ExampleModClient implements ClientModInitializer {
 	}
 
 	private static void handleVisibilityToggle(Minecraft client) {
-		if (client.getWindow() == null) {
-			return;
-		}
-
-		boolean f8IsDown = GLFW.glfwGetKey(client.getWindow().handle(), GLFW.GLFW_KEY_F8) == GLFW.GLFW_PRESS;
-		if (f8IsDown && !f8WasDown) {
+		while (TOGGLE_RANGES_KEY.consumeClick()) {
 			rangesVisible = !rangesVisible;
 			saveSettings();
+			if (client.player != null) {
+				client.player.sendOverlayMessage(
+						Component.literal("Beacon visuals turned " + (rangesVisible ? "on" : "off"))
+				);
+			}
 		}
-		f8WasDown = f8IsDown;
 	}
 
 	public static boolean areRangesVisible() {
@@ -76,6 +85,12 @@ public class ExampleModClient implements ClientModInitializer {
 		Minecraft client = Minecraft.getInstance();
 		if (client.level == null || client.player == null) {
 			return;
+		}
+
+		long currentSurfaceCacheWindow = client.level.getGameTime() / 10;
+		if (currentSurfaceCacheWindow != surfaceCacheWindow) {
+			surfaceHeights.clear();
+			surfaceCacheWindow = currentSurfaceCacheWindow;
 		}
 
 		Set<BlockPos> visibleBeacons = new HashSet<>(pinnedBeacons);
@@ -108,12 +123,30 @@ public class ExampleModClient implements ClientModInitializer {
 				int level = ((BeaconAccessor) beacon).beaconRange$getLevels();
 				if (level > 0) {
 					int range = level * 10 + 10;
-					renderBeaconBox(pos, range, beaconColor(pos));
+					BeaconKey key = currentKey(pos);
+					int surface = surfaceHeights.computeIfAbsent(
+							key,
+							ignored -> getSurfaceHeight(client.level, pos, range)
+					);
+					int maxBuildHeight = client.level.dimensionType().minY()
+							+ client.level.dimensionType().height();
+					int top = Math.min(maxBuildHeight, surface + 50);
+					renderBeaconBox(pos, range, top, beaconColor(pos));
 				}
 			} else {
 				pinnedBeacons.remove(pos);
 			}
 		}
+	}
+
+	private static int getSurfaceHeight(net.minecraft.client.multiplayer.ClientLevel level, BlockPos pos, int range) {
+		return BeaconRangeGeometry.findHighestSurface(
+				pos.getX(),
+				pos.getZ(),
+				range,
+				level.dimensionType().minY(),
+				(x, z) -> level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z)
+		);
 	}
 
 	private static int beaconColor(BlockPos pos) {
@@ -218,10 +251,10 @@ public class ExampleModClient implements ClientModInitializer {
 	private record BeaconKey(String dimension, BlockPos pos) {
 	}
 
-	private static void renderBeaconBox(BlockPos pos, int range, int color) {
+	private static void renderBeaconBox(BlockPos pos, int range, int top, int color) {
 		Gizmos.cuboid(
 				new AABB(pos.getX() - range, pos.getY() - range, pos.getZ() - range,
-						pos.getX() + range + 1, pos.getY() + range + 1, pos.getZ() + range + 1),
+						pos.getX() + range + 1, top, pos.getZ() + range + 1),
 				GizmoStyle.strokeAndFill(color, 1.5f, color & 0x30FFFFFF)
 		);
 	}

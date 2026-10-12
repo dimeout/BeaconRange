@@ -1,18 +1,18 @@
 {
 	"schemaVersion": 1,
-	"id": "modid",
+	"id": "beaconrange",
 	"version": "${version}",
 	"name": "Beacon Range",
-	"description": "A client-side utility mod that visualizes active beacon coverage with customizable per-beacon colors, persistent visibility settings, and quick F8 toggling.",
+	"description": "Client-side beacon coverage visualization for Minecraft. See each beacon's effective range, customize its color, and toggle visualizations from a configurable keybind.",
 	"authors": [
-		"Me!"
+		"Dimeout"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/dimeout/BeaconRange",
+		"sources": "https://github.com/dimeout/BeaconRange"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/modid/icon.png",
+	"icon": "assets/beaconrange/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
@@ -23,9 +23,9 @@
 		]
 	},
 	"mixins": [
-		"modid.mixins.json",
+		"beaconrange.mixins.json",
 		{
-			"config": "modid.client.mixins.json",
+			"config": "beaconrange.client.mixins.json",
 			"environment": "client"
 		}
 	],
