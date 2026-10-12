@@ -10,6 +10,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.core.BlockPos;
@@ -45,11 +46,11 @@ public class ExampleModClient implements ClientModInitializer {
 	private static final Map<BeaconKey, Integer> beaconColors = new HashMap<>();
 	private static final Map<BeaconKey, Integer> surfaceHeights = new HashMap<>();
 	private static final Set<BeaconKey> hiddenBeacons = new HashSet<>();
-	private static final KeyMapping TOGGLE_RANGES_KEY = new KeyMapping(
+	private static final KeyMapping TOGGLE_RANGES_KEY = KeyMappingHelper.registerKeyMapping(new KeyMapping(
 			"key.beacon_range.toggle",
 			GLFW.GLFW_KEY_F8,
 			KeyMapping.Category.MISC
-	);
+	));
 	private static boolean rangesVisible = true;
 	private static long surfaceCacheWindow = Long.MIN_VALUE;
 	private static Path configPath;
