@@ -2,6 +2,7 @@ package com.example.client;
 
 import com.example.client.mixin.BeaconAccessor;
 import com.example.BeaconRangeGeometry;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -13,6 +14,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gizmos.GizmoStyle;
 import net.minecraft.gizmos.Gizmos;
@@ -22,7 +24,6 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
-import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,13 +47,18 @@ public class ExampleModClient implements ClientModInitializer {
 	private static final Map<BeaconKey, Integer> beaconColors = new HashMap<>();
 	private static final Map<BeaconKey, Integer> surfaceHeights = new HashMap<>();
 	private static final Set<BeaconKey> hiddenBeacons = new HashSet<>();
+	private static final Set<BlockPos> nearbyBeacons = new HashSet<>();
 	private static final KeyMapping TOGGLE_RANGES_KEY = KeyMappingHelper.registerKeyMapping(new KeyMapping(
 			"key.beacon_range.toggle",
-			GLFW.GLFW_KEY_F8,
+			InputConstants.KEY_F8,
 			KeyMapping.Category.MISC
 	));
 	private static boolean rangesVisible = true;
 	private static long surfaceCacheWindow = Long.MIN_VALUE;
+	private static long nearbyBeaconCacheWindow = Long.MIN_VALUE;
+	private static ClientLevel cachedLevel;
+	private static int cachedPlayerChunkX;
+	private static int cachedPlayerChunkZ;
 	private static Path configPath;
 
 	@Override
@@ -89,6 +95,13 @@ public class ExampleModClient implements ClientModInitializer {
 		}
 
 		long currentSurfaceCacheWindow = client.level.getGameTime() / 10;
+		if (client.level != cachedLevel) {
+			cachedLevel = client.level;
+			nearbyBeacons.clear();
+			surfaceHeights.clear();
+			surfaceCacheWindow = Long.MIN_VALUE;
+			nearbyBeaconCacheWindow = Long.MIN_VALUE;
+		}
 		if (currentSurfaceCacheWindow != surfaceCacheWindow) {
 			surfaceHeights.clear();
 			surfaceCacheWindow = currentSurfaceCacheWindow;
@@ -99,21 +112,30 @@ public class ExampleModClient implements ClientModInitializer {
 		int playerChunkX = playerPos.getX() >> 4;
 		int playerChunkZ = playerPos.getZ() >> 4;
 
-		for (int chunkX = playerChunkX - 8; chunkX <= playerChunkX + 8; chunkX++) {
-			for (int chunkZ = playerChunkZ - 8; chunkZ <= playerChunkZ + 8; chunkZ++) {
-				if (client.level.getChunkSource().hasChunk(chunkX, chunkZ)) {
-					LevelChunk chunk = client.level.getChunkSource()
-							.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false);
-					if (chunk != null) {
-						for (var blockEntity : chunk.getBlockEntities().values()) {
-							if (blockEntity instanceof BeaconBlockEntity) {
-								visibleBeacons.add(blockEntity.getBlockPos());
+		if (currentSurfaceCacheWindow != nearbyBeaconCacheWindow
+				|| playerChunkX != cachedPlayerChunkX
+				|| playerChunkZ != cachedPlayerChunkZ) {
+			nearbyBeacons.clear();
+			for (int chunkX = playerChunkX - 8; chunkX <= playerChunkX + 8; chunkX++) {
+				for (int chunkZ = playerChunkZ - 8; chunkZ <= playerChunkZ + 8; chunkZ++) {
+					if (client.level.getChunkSource().hasChunk(chunkX, chunkZ)) {
+						LevelChunk chunk = client.level.getChunkSource()
+								.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false);
+						if (chunk != null) {
+							for (var blockEntity : chunk.getBlockEntities().values()) {
+								if (blockEntity instanceof BeaconBlockEntity) {
+									nearbyBeacons.add(blockEntity.getBlockPos());
+								}
 							}
 						}
 					}
 				}
 			}
+			nearbyBeaconCacheWindow = currentSurfaceCacheWindow;
+			cachedPlayerChunkX = playerChunkX;
+			cachedPlayerChunkZ = playerChunkZ;
 		}
+		visibleBeacons.addAll(nearbyBeacons);
 
 		for (BlockPos pos : visibleBeacons) {
 			if (hiddenBeacons.contains(currentKey(pos))) {

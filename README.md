@@ -18,7 +18,7 @@ coverage while building and planning your base.
   or off.
 - Saves beacon colors, individual beacon visibility, and the global visibility
   setting between sessions.
-- Supports Minecraft 26.2 with Fabric Loader and Fabric API.
+- Supports Minecraft 26.3 with Fabric Loader and Fabric API.
 
 Beacon range boxes represent the beacon's horizontal range of 20, 30, 40, or
 50 blocks depending on its pyramid level. Vertically, a box extends downward

@@ -2,7 +2,11 @@
 
 All notable changes to Beacon Range are documented here.
 
-## [1.1.0] - 2026-10-12
+## [1.1.1] - 2026-10-12
+
+### Compatibility
+
+- Updated support to Minecraft 26.3.
 
 ### Added
 
@@ -18,6 +22,8 @@ All notable changes to Beacon Range are documented here.
 - Beacon boxes now extend up to 50 blocks above the highest terrain surface
   within the beacon's horizontal range.
 - Beacon box height is capped at the dimension's build height.
+- Nearby beacon discovery is cached between renderer frames to reduce repeated
+  chunk scanning and improve client-side rendering performance.
 - Moved the toggle keybind into Minecraft's built-in **Miscellaneous** category.
 - Renamed the mod ID and resource namespace from `modid` to `beaconrange`.
 - Replaced the template icon with the Beacon Range icon.
@@ -30,9 +36,6 @@ All notable changes to Beacon Range are documented here.
 - Fixed the resource namespace and mixin configuration names still using
   starter-template values.
 
-### Compatibility
-
-- Minecraft 26.2
 - Fabric Loader 0.19.5 or newer
 - Fabric API
 - Java 25 or newer
